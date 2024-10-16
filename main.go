@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 )
 
 var fileHandler = http.FileServer(http.Dir("./public"))
@@ -33,15 +34,29 @@ func (d default404) Write(data []byte) (int, error) {
 	return d.w.Write(data)
 }
 
+func hasExtension(s string) bool {
+	slashIndex := strings.LastIndex(s, "/")
+	lastSegment := s[slashIndex+1:]
+	dotIndex := strings.LastIndex(lastSegment, ".")
+	return dotIndex != -1
+}
+
 // Default 404 to index.html
-func Default404(handler http.Handler) http.Handler {
+func withDefault404(handler http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.Method != "GET" {
+		if hasExtension(r.URL.Path) {
 			handler.ServeHTTP(w, r)
 		} else {
 			handler.ServeHTTP(default404{w}, r)
 		}
+	})
+}
 
+func withLongTermCachhing(handler http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Cache-Control", "public, max-age=31556952")
+		log.Println("wat")
+		handler.ServeHTTP(w, r)
 	})
 }
 
@@ -50,8 +65,11 @@ func main() {
 		w.WriteHeader(200)
 	})
 
+	// Serve all files from public/assets with long term caching
+	http.Handle("GET /assets/", withDefault404(withLongTermCachhing(fileHandler)))
+
 	// Serve all files from public
-	http.Handle("GET /", Default404(fileHandler))
+	http.Handle("GET /", withDefault404(fileHandler))
 
 	port := os.Getenv("PORT")
 	if port == "" {

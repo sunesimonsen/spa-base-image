@@ -1,8 +1,12 @@
 # SPA base image
 
-A very opinionated server with the only purpose of serving a single page application from the public folder.
+A very opinionated server with the only purpose of serving a single page application from the `public` folder where all assets in the sub-folder `public/assets` will be served with long term caching headers.
 
 The server is written in Go and is distributed as a Docker image.
+
+* serves files from `public`
+* request that can't be mapped to a file it will serve `/public/index.html`
+* any files in `public/assets` will be served with `Cache-Control: public, max-age=31556952`
 
 ## Usage
 
@@ -20,7 +24,7 @@ RUN npm install
 RUN npm run build
 
 
-FROM sunesimonsen/spa-base
+FROM sunesimonsen/spa-base-image
 
 COPY --from=builder /app/dist public
 ```
