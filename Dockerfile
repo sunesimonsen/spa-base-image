@@ -11,6 +11,8 @@ RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o tmp/main .
 
 FROM gcr.io/distroless/static-debian11
 
+WORKDIR /app
+
 COPY --from=golang /app/tmp/main main
 
 EXPOSE 8080
