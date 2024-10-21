@@ -5,8 +5,9 @@ A very opinionated server with the only purpose of serving a single page applica
 The server is written in Go and is distributed as a Docker image.
 
 * serves files from `public`
-* request that can't be mapped to a file it will serve `/public/index.html`
+* request that can't be mapped to a file and isn't inside of `public/assets` will serve `/public/index.html`
 * any files in `public/assets` will be served with `Cache-Control: public, max-age=31556952`
+* server is exposed on port 8080
 
 ## Usage
 
